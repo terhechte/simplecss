@@ -77,6 +77,9 @@ pub enum Error {
 
     /// An invalid language pseudo-class.
     InvalidLanguagePseudoClass,
+
+    /// An Invalid index
+    InvalidChildIndex,
 }
 
 impl fmt::Display for Error {
@@ -112,6 +115,9 @@ impl fmt::Display for Error {
             }
             Error::InvalidLanguagePseudoClass => {
                 write!(f, "invalid language pseudo-class")
+            }
+            Error::InvalidChildIndex => {
+                write!(f, "invalid child index")
             }
         }
     }

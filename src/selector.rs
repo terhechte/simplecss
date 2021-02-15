@@ -58,6 +58,7 @@ pub enum PseudoClass<'a> {
     Active,
     Focus,
     Lang(&'a str),
+    Child(i32)
 }
 
 impl fmt::Display for PseudoClass<'_> {
@@ -70,6 +71,7 @@ impl fmt::Display for PseudoClass<'_> {
             PseudoClass::Active => write!(f, "active"),
             PseudoClass::Focus => write!(f, "focus"),
             PseudoClass::Lang(lang) => write!(f, "lang({})", lang),
+            PseudoClass::Child(idx) => write!(f, "nth-child({})", idx)
         }
     }
 }
@@ -313,6 +315,9 @@ pub(crate) fn parse(text: &str) -> (Option<Selector>, usize) {
             SelectorToken::LangPseudoClass(lang) => {
                 add_sub(SubSelector::PseudoClass(PseudoClass::Lang(lang)));
             }
+            SelectorToken::ChildPseudoClass(idx) => {
+                add_sub(SubSelector::PseudoClass(PseudoClass::Child(idx)));
+            }
             SelectorToken::DescendantCombinator => {
                 combinator = Combinator::Descendant;
             }
@@ -403,6 +408,9 @@ pub enum SelectorToken<'a> {
 
     /// `:lang(en)`
     LangPseudoClass(&'a str),
+
+    /// `:nth-child(idx)`
+    ChildPseudoClass(i32),
 
     /// `a b`
     DescendantCombinator,
@@ -545,6 +553,23 @@ impl<'a> Iterator for SelectorTokenizer<'a> {
                     }
 
                     Some(Ok(SelectorToken::LangPseudoClass(lang)))
+                } else if ident == "nth-child" {
+                    try2!(self.stream.consume_byte(b'('));
+                    let lang = self.stream.consume_bytes(|c| c != b')').trim();
+                    try2!(self.stream.consume_byte(b')'));
+
+                    if lang.is_empty() {
+                        self.finished = true;
+                        return Some(Err(Error::InvalidLanguagePseudoClass));
+                    }
+                    match lang.parse() {
+                        Ok(idx) => return Some(Ok(SelectorToken::ChildPseudoClass(idx))),
+                        Err(e) => {
+                            self.finished = true;
+                            println!("Err {:?}", &e);
+                            return Some(Err(Error::InvalidChildIndex));
+                        }
+                    }
                 } else {
                     Some(Ok(SelectorToken::PseudoClass(ident)))
                 }
