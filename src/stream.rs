@@ -189,6 +189,10 @@ impl<'a> Stream<'a> {
             self.advance(1);
         }
 
+        if self.curr_byte() == Ok(b'$') {
+            self.advance(1);
+        }
+
         let mut iter = self.chars();
         if let Some(c) = iter.next() {
             if c.is_name_start() {

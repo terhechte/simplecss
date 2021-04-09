@@ -144,6 +144,11 @@ tokenize!(tokenize_34, "*zoom:1;",
     declare("zoom", "1")
 );
 
+tokenize!(tokenize_35, "  $color  :  red  ; ",
+    declare("$color", "red")
+);
+
+
 //tokenize!(tokenize_, "@unsupported { splines: reticulating } color: green",
 //    declare("color", "green")
 //);
